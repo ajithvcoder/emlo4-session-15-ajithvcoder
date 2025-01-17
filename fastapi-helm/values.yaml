@@ -13,23 +13,27 @@ configVersions:
 # UI Server Next JS
 uiServer:
   image:
-    repository: ui-server
+    repository: 306093656765.dkr.ecr.ap-south-1.amazonaws.com/a15/ui-server
     tag: latest
 
 # Web Server
 webServer:
   image:
-    repository: web-server
+    repository: 306093656765.dkr.ecr.ap-south-1.amazonaws.com/a15/web-server
     tag: latest
 
 # Model Server
 modelServer:
   image:
-    repository: model-server
+    repository: 306093656765.dkr.ecr.ap-south-1.amazonaws.com/a15/model-server
     tag: latest
   resources:
-    memory: "2Gi"
-    cpu: "1000m"
+      requests:
+          cpu: "600m"    # Average CPU usage is around 700m
+          memory: "600Mi" # Average memory usage is around 600Mi
+      limits:
+          cpu: "1000m"   # Set limit to 1 CPU core
+          memory: "800Mi" # Set memory limit to 800Mi
 
 # Redis
 redis:

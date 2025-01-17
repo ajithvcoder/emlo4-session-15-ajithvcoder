@@ -19,7 +19,7 @@ spec:
             containers:
                 - name: ui-server
                   image: "{{ .Values.uiServer.image.repository }}:{{ .Values.uiServer.image.tag }}"
-                  imagePullPolicy: Never
+                  imagePullPolicy: IfNotPresent
                   resources:
                     requests:
                       memory: "768Mi"     # Increased for dev environment
@@ -28,8 +28,7 @@ spec:
                       memory: "1.5Gi"     # Higher limit for dev environment
                       cpu: "500m"
                   ports:
-                      - name: http
-                        containerPort: 80
+                      - containerPort: 80
                   env:
                       - name: WEB_SERVER_URL
                         valueFrom:

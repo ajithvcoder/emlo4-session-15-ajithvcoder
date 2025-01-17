@@ -1,0 +1,32 @@
+cmd: kubectl describe hpa classifier-hpa -n prod &> logs.txt
+
+Name:                                                  classifier-hpa
+Namespace:                                             prod
+Labels:                                                app.kubernetes.io/managed-by=Helm
+                                                       app.kubernetes.io/name=model-server
+                                                       app.kubernetes.io/part-of=fastapi-app
+Annotations:                                           meta.helm.sh/release-name: fastapi-release-prod
+                                                       meta.helm.sh/release-namespace: default
+CreationTimestamp:                                     Fri, 17 Jan 2025 18:25:32 +0000
+Reference:                                             Deployment/model-server
+Metrics:                                               ( current / target )
+  resource cpu on pods  (as a percentage of request):  0% (2m) / 50%
+Min replicas:                                          3
+Max replicas:                                          10
+Deployment pods:                                       3 current / 3 desired
+Conditions:
+  Type            Status  Reason            Message
+  ----            ------  ------            -------
+  AbleToScale     True    ReadyForNewScale  recommended size matches current size
+  ScalingActive   True    ValidMetricFound  the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)
+  ScalingLimited  True    TooFewReplicas    the desired replica count is less than the minimum replica count
+Events:
+  Type     Reason                        Age    From                       Message
+  ----     ------                        ----   ----                       -------
+  Normal   SuccessfulRescale             13m    horizontal-pod-autoscaler  New size: 3; reason: Current number of replicas below Spec.MinReplicas
+  Warning  FailedGetResourceMetric       13m    horizontal-pod-autoscaler  failed to get cpu utilization: did not receive metrics for targeted pods (pods might be unready)
+  Warning  FailedComputeMetricsReplicas  13m    horizontal-pod-autoscaler  invalid metrics (1 invalid out of 1), first error is: failed to get cpu resource metric value: failed to get cpu utilization: did not receive metrics for targeted pods (pods might be unready)
+  Normal   SuccessfulRescale             8m14s  horizontal-pod-autoscaler  New size: 5; reason: cpu resource utilization (percentage of request) above target
+  Normal   SuccessfulRescale             7m59s  horizontal-pod-autoscaler  New size: 9; reason: cpu resource utilization (percentage of request) above target
+  Normal   SuccessfulRescale             7m29s  horizontal-pod-autoscaler  New size: 10; reason: cpu resource utilization (percentage of request) above target
+  Normal   SuccessfulRescale             43s    horizontal-pod-autoscaler  New size: 3; reason: All metrics below target

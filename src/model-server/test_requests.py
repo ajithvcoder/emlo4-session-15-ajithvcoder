@@ -138,3 +138,4 @@ if __name__ == "__main__":
 # python test_requests.py --requests 20 --workers 10
 # k8s-default-classifi-18da2b317c-1355353865.ap-south-1.elb.amazonaws.com
 # python test_requests.py --url https://k8s-default-classifi-18da2b317c-1355353865.ap-south-1.elb.amazonaws.com --requests 1 --workers 1
+# python test_requests.py --url https:// k8s-prod-modelser-107450934f-1470860234.ap-south-1.elb.amazonaws.com --requests 1 --workers 1

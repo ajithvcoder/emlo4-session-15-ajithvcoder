@@ -21,14 +21,16 @@ spec:
             containers:
                 - name: model-server
                   image: "{{ .Values.modelServer.image.repository }}:{{ .Values.modelServer.image.tag }}"
-                  imagePullPolicy: Never
+                  imagePullPolicy: IfNotPresent
                   resources:
+                      requests:
+                          memory: {{ .Values.modelServer.resources.requests.memory }}
+                          cpu: {{ .Values.modelServer.resources.requests.cpu }}
                       limits:
-                          memory: {{ .Values.modelServer.resources.memory }}
-                          cpu: {{ .Values.modelServer.resources.cpu }}
+                          memory: {{ .Values.modelServer.resources.limits.memory }}
+                          cpu: {{ .Values.modelServer.resources.limits.cpu }}
                   ports:
-                      - name: http
-                        containerPort: 80
+                      - containerPort: 80
                   env:
                       - name: REDIS_HOST
                         valueFrom:

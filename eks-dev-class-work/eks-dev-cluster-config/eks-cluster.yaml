@@ -6,14 +6,14 @@ metadata:
   region: ap-south-1
 
 managedNodeGroups:
-  - name: ng-dedicated-1
-    instanceType: m5.xlarge
-    desiredCapacity: 1
-    maxPodsPerNode: 6
-    volumeSize: 40
-    volumeType: gp3
-    ssh:
-      allow: true # will use ~/.ssh/id_rsa.pub as the default ssh key
+  # - name: ng-dedicated-1
+  #   instanceType: m5.xlarge
+  #   desiredCapacity: 1
+  #   maxPodsPerNode: 6
+  #   volumeSize: 40
+  #   volumeType: gp3
+  #   ssh:
+  #     allow: true # will use ~/.ssh/id_rsa.pub as the default ssh key
   # For eks-dev-src, eks-dev-src-1, eks-dev-src2 use below. after that delete it
   # - name: ng-spot-1
   #   instanceType: m5.xlarge

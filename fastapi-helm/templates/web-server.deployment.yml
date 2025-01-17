@@ -19,10 +19,9 @@ spec:
             containers:
                 - name: web-server
                   image: "{{ .Values.webServer.image.repository }}:{{ .Values.webServer.image.tag }}"
-                  imagePullPolicy: Never
+                  imagePullPolicy: IfNotPresent
                   ports:
-                      - name: http
-                        containerPort: 80
+                      - containerPort: 80
                   env:
                       - name: REDIS_HOST
                         valueFrom:

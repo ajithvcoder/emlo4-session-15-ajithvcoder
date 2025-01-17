@@ -10,6 +10,57 @@ spec:
     selector:
         app.kubernetes.io/name: model-server
     ports:
-        - name: http
+        - protocol: TCP
           port: 80
           targetPort: 80
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: model-server-ingress
+    namespace: {{ .Values.namespace }}
+    labels:
+        app.kubernetes.io/name: model-server
+        app.kubernetes.io/part-of: fastapi-app
+    annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/target-type: ip
+spec:
+    ingressClassName: alb
+    rules:
+        - http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: model-server-service
+                            port:
+                                number: 80
+
+---
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+    name: classifier-hpa
+    namespace: {{ .Values.namespace }}
+    labels:
+        app.kubernetes.io/name: model-server
+        app.kubernetes.io/part-of: fastapi-app
+spec:
+    scaleTargetRef:
+        apiVersion: apps/v1
+        kind: Deployment
+        name: model-server
+    minReplicas: 3
+    maxReplicas: 10
+    metrics:
+    - type: Resource
+      resource:
+          name: cpu
+          target:
+              type: Utilization
+              averageUtilization: 50

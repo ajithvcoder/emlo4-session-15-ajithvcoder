@@ -1,0 +1,69 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: basic-cluster-ap
+  region: ap-south-1
+
+managedNodeGroups:
+  - name: ng-dedicated-1
+    instanceType: m5.xlarge
+    desiredCapacity: 1
+    maxPodsPerNode: 6
+    volumeSize: 40
+    volumeType: gp3
+    ssh:
+      allow: true # will use ~/.ssh/id_rsa.pub as the default ssh key
+  # For eks-dev-src, eks-dev-src-1, eks-dev-src2 use below. after that delete it
+  # - name: ng-spot-1
+  #   instanceType: m5.xlarge
+  #   desiredCapacity: 1
+  #   spot: true
+  #   maxPodsPerNode: 5
+  #   labels:
+  #     role: spot
+  # For  eks-dev-src-3 only 
+  - name: ng-spot-4
+    instanceType: m5.xlarge
+    minSize: 0
+    maxSize: 5
+    desiredCapacity: 0
+    spot: true
+    labels:
+      role: spot
+    propagateASGTags: true
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+
+nodeGroups:
+  - name: ng-1
+    instanceType: m5.xlarge
+    desiredCapacity: 1
+    iam:
+      withAddonPolicies:
+        imageBuilder: true
+        autoScaler: true
+        externalDNS: true
+        certManager: true
+        appMesh: true
+        appMeshPreview: true
+        ebs: true
+        fsx: true
+        efs: true
+        awsLoadBalancerController: true
+        xRay: true
+        cloudWatch: true
+
+  # - name: ng-spot-4
+  #   instanceType: t3a.medium
+  #   minSize: 0
+  #   maxSize: 5
+  #   desiredCapacity: 0
+  #   spot: true
+  #   labels:
+  #     role: spot
+  #   propagateASGTags: true
+  #   iam:
+  #     withAddonPolicies:
+  #       autoScaler: true

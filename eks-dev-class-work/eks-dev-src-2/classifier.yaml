@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: classifer-deployment
+    labels:
+        app: classifier
+spec:
+    replicas: 3
+    selector:
+        matchLabels:
+            app: classifier
+    template:
+        metadata:
+            labels:
+                app: classifier
+        spec:
+            nodeSelector:    
+                eks.amazonaws.com/capacityType: SPOT
+            containers:
+                # - name: classifier
+                #   image: 306093656765.dkr.ecr.ap-south-1.amazonaws.com/classifier-fastapi-k8s:latest
+                #   ports:
+                #       - containerPort: 8000
+                - name: model-server
+                  image: 306093656765.dkr.ecr.ap-south-1.amazonaws.com/classifier-fastapi-k8s:latest
+                  ports:
+                      - containerPort: 8000
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: classifier-service
+spec:
+    selector:
+        app: classifier
+    ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 8000
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: classifier-ingress
+    annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/target-type: ip
+spec:
+    ingressClassName: alb
+    rules:
+        - http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: classifier-service
+                            port:
+                                number: 80

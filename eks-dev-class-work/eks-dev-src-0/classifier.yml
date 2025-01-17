@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: classifer-deployment
+    labels:
+        app: classifier
+spec:
+    replicas: 2
+    selector:
+        matchLabels:
+            app: classifier
+    template:
+        metadata:
+            labels:
+                app: classifier
+        spec:
+            containers:
+                - name: classifier
+                  image: 306093656765.dkr.ecr.ap-south-1.amazonaws.com/classifier-gradio-k8s:latest
+                  resources:
+                      requests:
+                          cpu: "700m"    # Average CPU usage is around 700m
+                          memory: "600Mi" # Average memory usage is around 600Mi
+                      limits:
+                          cpu: "1000m"   # Set limit to 1 CPU core
+                          memory: "800Mi" # Set memory limit to 800Mi
+                  ports:
+                      - containerPort: 7860
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: classifier-service
+spec:
+    selector:
+        app: classifier
+    sessionAffinity: ClientIP
+    ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 7860
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: classifier-ingress
+    annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/target-type: ip
+        # Enable sticky sessions using application-based cookies
+        alb.ingress.kubernetes.io/target-group-attributes: stickiness.enabled=true,stickiness.lb_cookie.duration_seconds=172800
+        # Optional: You can also use application-generated cookies
+        # alb.ingress.kubernetes.io/target-group-attributes: stickiness.enabled=true,stickiness.type=app_cookie,stickiness.app_cookie.cookie_name=AWSALB,stickiness.app_cookie.duration_seconds=172800
+spec:
+    ingressClassName: alb
+    rules:
+        - http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: classifier-service
+                            port:
+                                number: 80

@@ -2,14 +2,22 @@
 
 The class work codes from canvas needs some alterations and i have made it below in a proper sequential manner.
 
-aws install
+**AWS install**
+
 ```
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
 ```
 
-EKSCTL
+**Provide credentials**
+
+```
+aws configure
+```
+
+**EKSCTL Install**
+
 ```
 # for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
 ARCH=amd64
@@ -25,42 +33,52 @@ tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
 sudo mv /tmp/eksctl /usr/local/bin
 ```
 
-Set the default ssh-gen key in local
+**Set the default ssh-gen key in local**
+
+This default ssh key is used by aws for default ssh login
+
 ```
 ssh-keygen -t rsa -b 4096
 ```
-Local -
-### install kubectl for aws eks in your local
+
+**Install kubectl for aws eks in your local**
+
 ```
- curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.32.0/2024-12-20/bin/linux/amd64/kubectl
+curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.32.0/2024-12-20/bin/linux/amd64/kubectl
 
 chmod +x ./kubectl
 
 mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
 ```
 
+
 Go into `eks-dev-cluster-config` folder
 
 ### Create cluster
+Go into `eks-setup/cluster-config` folder
+
 ```
 eksctl create cluster -f eks-cluster.yaml
 ```
 
 
-Check instances
-ssh ec2-user@65.1.181.15
+Check instances from ec2
+
+```
+ssh ec2-user@43.204.212.5
 kubectl config view
 kubectl get all
+```
 
-#### SKipping first example
+#### Skipping first example (eks-dev-src-0)
 
-#### enable OIDC on your EKS Cluster
+#### Enable OIDC on your EKS Cluster
 
-eksctl utils associate-iam-oidc-provider --region ap-south-1 --cluster basic-cluster-ap --approve
+- `eksctl utils associate-iam-oidc-provider --region ap-south-1 --cluster basic-cluster-ap --approve`
 
-curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.11.0/docs/install/iam_policy.json
+- `curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.11.0/docs/install/iam_policy.json`
 
-aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam-policy.json
+- `aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam-policy.json`
 
 
 Create IAM Role for Service Account (IRSA)
@@ -69,9 +87,7 @@ Create IAM Role for Service Account (IRSA)
 eksctl create iamserviceaccount --cluster=basic-cluster-ap --namespace=kube-system --name=aws-load-balancer-controller  --attach-policy-arn=arn:aws:iam::306093656765:policy/AWSLoadBalancerControllerIAMPolicy --override-existing-serviceaccounts  --region ap-south-1  --approve
 ```
 
---------------------
-
-Install the AWS Load Balancer Controller using HELM
+#### Install the AWS Load Balancer Controller using HELM
 
 ```
 helm repo add eks https://aws.github.io/eks-charts
@@ -84,29 +100,30 @@ verify load balancer
 kubectl get all -n kube-system
 ```
 
-Scale nodegroup
+Optional: Scale nodegroup
+
 ```
-eksctl scale nodegroup --cluster=basic-cluster-ap --nodes=2 ng-dedicated-1 --nodes-max=2
+eksctl scale nodegroup --cluster=basic-cluster-ap --nodes=2 ng-dedicated-1 --nodes-max=4
 ```
 
 Go into `eks-dev-src-1` folder
 
+**Kubernetes dashboard**
+
+Use this and fix metric-server api error if u use genric one
+
+`https://medium.com/@cloudspinx/fix-error-metrics-api-not-available-in-kubernetes-aa10766e1c2f`
+
+only then u can get output for ```kubectl top node``
 
 
-Kubernetes dashboard
 ```
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-``
-
-```
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-
 helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
-
 helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
 ```
 
 Create services
+
 ```
 kubectl apply -f .
 ```
@@ -203,24 +220,19 @@ eksctl get nodegroup --cluster basic-cluster-ap
 
 Wait for complete deletion of ng-spot-1 for 3 minutes
 
-Go to "http://k8s-default-classifi-18da2b317c-1112532225.ap-south-1.elb.amazonaws.com/" loadbalancer url and go to "/docs" and verify infer and health
+- Go to "http://k8s-default-classifi-18da2b317c-1112532225.ap-south-1.elb.amazonaws.com/" loadbalancer url and go to "/docs" and verify infer and health
 
-metrics-severver
+- Use this and fix metric-server api error [medium-blog](https://medium.com/@cloudspinx/fix-error-metrics-api-not-available-in-kubernetes-aa10766e1c2f)only then u can get output for `kubectl top node`
 
-Use this and fix metric-server api error
-https://medium.com/@cloudspinx/fix-error-metrics-api-not-available-in-kubernetes-aa10766e1c2f
-
-only then u can get output for ```kubectl top node``
-
-wait for some time like 5 minutes if the pods are pending. else recreate the nodegroup and proceed
+wait for some time like 5 minutes if the pods are pending. else recreate the nodegroup if needed and proceed
 
 ### Horizontal Pod Autoscaler (HPA)
 
 Add the `HorizontalPodAutoscaler` yaml file to classifer.yaml
 
-k apply -f classifier.yaml
+- `kubectl apply -f classifier.yaml`
 
-k describe hpa classifier-hpa
+- `kubectl describe hpa classifier-hpa`
 
 it should show some warning
 
@@ -230,113 +242,53 @@ Testing the request script
 python test_requests.py --url http://k8s-default-classifi-18da2b317c-748745984.ap-south-1.elb.amazonaws.com --requests 1 --workers 1
 ```
 Check these commands if its working fine. else google and fix it
-eg: for `k top pod` you need metric server api
+eg: for `kubectl top pod` you need metric server api
 
-`k top pod`
+- `kubectl top pod`
 
-`k get hpa classifier-hpa`
+- `kubectl get hpa classifier-hpa`
 
-`k get node`
+- `kubectl get node`
 
 
-Check horizontal scaling
+#### Check horizontal scaling
 
 ```
 python test_requests.py --url http://k8s-default-classifi-18da2b317c-748745984.ap-south-1.elb.amazonaws.com --requests 200 --workers 20
 ```
-I have set the threshold to 50% and You would be able to see that the replicas and nodes would have increased to replica=10 and additional two nodes would have been added
+- I have set the threshold to 50% and You would be able to see that the replicas and nodes would have increased to replica=10 and additional two nodes would have been added
 Also added "resources:" for model-server container. without that the Horizontalautoscaler 
 is unable to fetch the cpu utilization metric
 
-Check below three commands periodically it will increase the pods/replicas
+- Check below three commands periodically it will increase the pods/replicas
 
-`k top pod`
+  - `kubectl top pod`
 
-`k get hpa classifier-hpa`
+  - `kubectl get hpa classifier-hpa`
 
-`k get node`
+  - `kubectl get node`
 
 
 After 10 minutes of time and python script has ran successfully all the replicas scales down back to normal.
 
 ### Deletion Process
-``` kubectl delete pod --field-selector="status.phase==Failed" ```
 
-kubectl delete all --all
-
-eksctl delete cluster --name basic-cluster-ap --region ap-south-1
+- `kubectl delete pod --field-selector="status.phase==Failed"`
 
 
-Go to cloudformation and check if all are deleted that are created when u started u r work.
-Remeber dont believe "Deletion in progress" it may get failed so wait and make sure all the resources are completely deleted in cloud formation
-Delete the loadbalancers
-Check the ec2 instance dashboard, spotrequest, autocluster group, loadbalancers and enure all are closed/terminated/deleted
+Delete kubectl resources
 
-#TODO: add a folder for eks-dev-src-0 i.e the first vision.py file
+- `kubectl delete all --all`
 
-######################################################################
+Delete cluster
 
-debugging
-
-`eksctl create cluster -f eks-cluster.yaml --dry-runer`
-
-You can use above command for just to know what is running
-
-cluster creation
-
-Run `ssh-keygen -t rsa -b 4096` before creating cluster as we want to connect to cluster through ssh from local
-
-`eksctl create cluster -f eks-cluster.yaml`
-
-Go inside the node and check i.e inside ec2 instance
-
-ssh ec2-user@65.1.136.161
+- `eksctl delete cluster --name basic-cluster-ap --region ap-south-1`
 
 
-build docker image and push to ecr from local
+- Go to cloudformation and check if all are deleted that are created when u started u r work.
+- Remeber dont believe "Deletion in progress" it may get failed so wait and make sure all the resources are completely deleted in cloud formation
+- Delete the loadbalancers
+- Check the ec2 instance dashboard, spotrequest, autocluster group, loadbalancers and enure all are closed/terminated/deleted
 
 
-When u do kubectl apply .
-you may face resource not sufficitent for t3a.micro so use m5.xlarge
-
-load balancer
-
-eksctl utils associate-iam-oidc-provider --region ap-south-1 --cluster basic-cluster --approve
-curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.11.0/docs/install/iam_policy.json
-
-aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam-policy.json
-
-4
-"""
-~/mlops/course/emlo_play/emlo4-s15/emlo-s15/-cluster-config$ aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam-policy.json
-{
-    "Policy": {
-        "PolicyName": "AWSLoadBalancerControllerIAMPolicy",
-        "PolicyId": "ANPAUORE2RK6ZFEOBCHCW",
-        "Arn": "arn:aws:iam::306093656765:policy/AWSLoadBalancerControllerIAMPolicy",
-        "Path": "/",
-        "DefaultVersionId": "v1",
-        "AttachmentCount": 0,
-        "PermissionsBoundaryUsageCount": 0,
-        "IsAttachable": true,
-        "CreateDate": "2025-01-13T14:28:25+00:00",
-        "UpdateDate": "2025-01-13T14:28:25+00:00"
-    }
-}
-"""
-
-IRSA alignment
-
-eksctl create iamserviceaccount --cluster=basic-cluster-ap --namespace=kube-system --name=aws-load-balancer-controller  --attach-policy-arn=arn:aws:iam::306093656765:policy/AWSLoadBalancerControllerIAMPolicy --override-existing-serviceaccounts  --region ap-south-1  --approve
-
-
-helm repo add eks https://aws.github.io/eks-charts
-helm repo add eks https://aws.github.io/eks-charts
-
-helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=basic-cluster-ap --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
-
-kubectl get all -n kube-system
-
-eksctl create iamserviceaccount --cluster=basic-cluster-ap --namespace=kube-system --name=cluster-autoscaler --attach-policy-arn=arn:aws:iam::306093656765:policy/AWSClusterAutoScalerIAMPolicy --override-existing-serviceaccounts --region ap-south-1 --approve
-
-
+TODO: add a proper commands for eks-dev-src-0 i.e the first `vision.py` file

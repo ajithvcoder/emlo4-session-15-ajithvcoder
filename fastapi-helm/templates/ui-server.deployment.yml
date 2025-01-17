@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui-server
+  namespace: {{ .Values.namespace }}
+  labels:
+      app.kubernetes.io/name: ui-server
+      app.kubernetes.io/part-of: fastapi-app
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: ui-server
+    template:
+        metadata:
+            labels:
+                app.kubernetes.io/name: ui-server
+        spec:
+            containers:
+                - name: ui-server
+                  image: "{{ .Values.uiServer.image.repository }}:{{ .Values.uiServer.image.tag }}"
+                  imagePullPolicy: Never
+                  resources:
+                    requests:
+                      memory: "768Mi"     # Increased for dev environment
+                      cpu: "250m"         # Base CPU request
+                    limits:
+                      memory: "1.5Gi"     # Higher limit for dev environment
+                      cpu: "500m"
+                  ports:
+                      - name: http
+                        containerPort: 80
+                  env:
+                      - name: WEB_SERVER_URL
+                        valueFrom:
+                            configMapKeyRef:
+                                name: web-server-config-{{ .Values.configVersions.webServer }}
+                                key: web_server_url

@@ -1,0 +1,5 @@
+namespace: dev
+environment: dev
+hostname: fastapi.dev.localhost
+redis:
+  password: "dev-redis-password" 

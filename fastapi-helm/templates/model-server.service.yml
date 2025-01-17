@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: model-server-service
+    namespace: {{ .Values.namespace }}
+    labels:
+        app.kubernetes.io/name: model-server
+        app.kubernetes.io/part-of: fastapi-app
+spec:
+    selector:
+        app.kubernetes.io/name: model-server
+    ports:
+        - name: http
+          port: 80
+          targetPort: 80

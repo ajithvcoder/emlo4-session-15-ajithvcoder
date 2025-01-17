@@ -1,0 +1,5 @@
+namespace: prod
+environment: prod
+hostname: fastapi.prod
+redis:
+  password: "prod-redis-password" 

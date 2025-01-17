@@ -1,0 +1,6 @@
+fastapi[all]==0.115.6
+redis==5.2.1
+requests
+gdown
+onnxruntime
+pillow==11.0.0

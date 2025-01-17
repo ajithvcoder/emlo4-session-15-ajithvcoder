@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: ui-server-service
+    namespace: {{ .Values.namespace }}
+    labels:
+        app.kubernetes.io/name: ui-server
+        app.kubernetes.io/part-of: fastapi-app
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+    selector:
+        app.kubernetes.io/name: ui-server
+    ports:
+        - name: http
+          port: 80
+          targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: ui-server-ingress
+    namespace: {{ .Values.namespace }}
+    labels:
+        app.kubernetes.io/name: ui-server
+        app.kubernetes.io/part-of: fastapi-app
+spec:
+    rules:
+        - host: {{ .Values.hostname }}
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: ui-server-service
+                            port:
+                                number: 80

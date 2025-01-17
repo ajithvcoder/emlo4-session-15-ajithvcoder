@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: model-server
+    namespace: {{ .Values.namespace }}
+    labels:
+        app.kubernetes.io/name: model-server
+        app.kubernetes.io/part-of: fastapi-app
+spec:
+    replicas: 2
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: model-server
+    template:
+        metadata:
+            labels:
+                app.kubernetes.io/name: model-server
+        spec:
+            nodeSelector:
+              role: spot
+            containers:
+                - name: model-server
+                  image: "{{ .Values.modelServer.image.repository }}:{{ .Values.modelServer.image.tag }}"
+                  imagePullPolicy: Never
+                  resources:
+                      limits:
+                          memory: {{ .Values.modelServer.resources.memory }}
+                          cpu: {{ .Values.modelServer.resources.cpu }}
+                  ports:
+                      - name: http
+                        containerPort: 80
+                  env:
+                      - name: REDIS_HOST
+                        valueFrom:
+                            configMapKeyRef:
+                                name: redis-config-{{ .Values.configVersions.redis }}
+                                key: hostname
+                      - name: REDIS_PORT
+                        valueFrom:
+                            configMapKeyRef:
+                                name: redis-config-{{ .Values.configVersions.redis }}
+                                key: port
+                      - name: REDIS_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: redis-secret-{{ .Values.configVersions.redis }}
+                                key: db_password
+                      - name: MODEL_NAME
+                        valueFrom:
+                            configMapKeyRef:
+                                name: model-server-config-{{ .Values.configVersions.modelServer }}
+                                key: model_name

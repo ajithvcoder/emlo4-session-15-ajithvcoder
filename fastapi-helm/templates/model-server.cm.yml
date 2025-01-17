@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: model-server-config-{{ .Values.configVersions.modelServer }}
+    namespace: {{ .Values.namespace }}
+    labels:
+        app.kubernetes.io/name: model-server
+        app.kubernetes.io/version: {{ .Values.configVersions.modelServer }}
+        app.kubernetes.io/part-of: fastapi-app
+data:
+    model_server_url: "http://model-server-service"
+    model_name: {{ .Values.modelName }}

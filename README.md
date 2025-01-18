@@ -1,7 +1,7 @@
 
 ## EMLOV4-Session-15 Assignment - Kubernetes - III: EKS, ALB, Auto Scaling
 
-Using Helm charts, we are deploying a `cat-dog model service` hosted on a FastAPI server. Alongside, a `backend service built with FastAPI` handles requests. The `NextJS UI service` functions as the front-end interface for users. Additionally, a `Redis caching service` is integrated to enhance performance. Finally its exposed to internet with `aws-loadbalancers`. Cluster autoscaling(`CA`) and horizontal pod autoscaling(`HPA`) is used for `model-server`
+Using Helm charts, we are deploying a `cat-dog model service` hosted on a FastAPI server with loadbalancer and auto scaling capablity in `AWS EKS` platform. Alongside, a `backend service built with FastAPI` handles requests. The `NextJS UI service` functions as the front-end interface for users. Additionally, a `Redis caching service` is integrated to enhance performance. Finally its exposed to internet with `aws-loadbalancers`. Cluster autoscaling(`CA`) and horizontal pod autoscaling(`HPA`) is used for `model-server`
 
 ### Contents
 
@@ -45,9 +45,10 @@ Using Helm charts, we are deploying a `cat-dog model service` hosted on a FastAP
         - Inference latency while load
 
 ### Architecture Diagram
-#### TODO
 
-![](./assets/snap_architecture.png)
+![](./assets/images/snap_a15_arch.png)
+
+![](./assets/images/snap_a15_arch_2.png)
 
 Note: You can refer [class-work](./eks-dev-class-work) and develop the deployments stage by stage similar in session-15 class
 
@@ -105,6 +106,24 @@ chmod +x ./kubectl
 
 mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
 ```
+
+**Docker images to ECR**
+
+Build and push docker images to AWS ECR 
+
+Model server
+
+- `docker build -t model-server -f Dockerfile.model-server .`
+
+Web server
+
+- `docker build -t web-server -f Dockerfile.web-server .`
+
+UI server
+
+- `docker build -t ui-server -f Dockerfile.ui-server .`
+
+**Note: Make sure you change your account number in all `.yaml` files**
 
 ### Cluster Creation
 
@@ -326,19 +345,22 @@ Delete cluster
 
 - Helm charts are used for deployment
 
+    ![arch_1](./assets/images/snap_a15_arch.png)
+
+    ![arch_2](./assets/images/snap_a15_arch_2.png)
+
 - Model server and UI server exposed via ingress
 
-    ![Heavy load](./assets/images/snap_a15_ui_server.png)
+    ![ui server](./assets/images/snap_a15_ui_server.png)
 
-    ![Heavy load](./assets/images/snap_15_model_server.png)
+    ![model server](./assets/images/snap_15_model_server.png)
 
-    ![Heavy load](./assets/images/snap_ap15_ingress.png)
+    ![ingress](./assets/images/snap_ap15_ingress.png)
 
 
-- Create an artificial load on the service and 
-Print the Latency of the Inference
+- Create an artificial load on the service and print the Latency of the Inference
 
-    ![Heavy load](./assets/images/snap_a15_latency_during_heavy_load.png)
+    ![latency Heavy load](./assets/images/snap_a15_latency_during_heavy_load.png)
 
 - HPA logs
 
@@ -347,20 +369,29 @@ Print the Latency of the Inference
 
 - Screenshots of Autoscale out and scale in
 
-    Pod scale in and scale out
+    Pod: scale out
 
-    ![Heavy load](./assets/images/snap_a15_scale_in_0.png)
-    ![Heavy load](./assets/images/snap_a15_scale_in_1.png)
-    ![Heavy load](./assets/images/snap_a15_scale_in.png)
+    ![Pod Heavy load](./assets/images/snap_a15_scale_in_0.png)
+    ![Pod Heavy load](./assets/images/snap_a15_scale_in_1.png)
+    ![Pod Heavy load](./assets/images/snap_a15_scale_in.png)
 
-    Node scale in and scale out
+    Pod: scale in
+    Note: Didnt capture the screenshot so kindly check cluster logs and hpa logs
 
-    ![Heavy load](./assets/images/snap_a15_node_scaling_during_heavy_load.png)
-    ![Heavy load](./assets/images/snap_a15_nodegroup_after_heavyload.png)
+    [hpa_logs_last_line](./assets/logs/hpa_rescale_logs.txt)
+
+    Node: scale out
+
+    ![Node Heavy load](./assets/images/snap_a15_node_scaling_during_heavy_load.png)
+
+    Node: scale in 
+
+    ![Node Heavy load](./assets/images/snap_a15_nodegroup_after_heavyload.png)
+
 
 - Nodegroup eks
 
-    ![Heavy load](./assets/images/snap_a15_nodegroup_eksctl.png)
+    ![snap_a15_nodegroup_eksctl](./assets/images/snap_a15_nodegroup_eksctl.png)
 
 - `kubectl get all -A -o yaml` dump it to a single YAML file
 
@@ -368,21 +399,21 @@ Print the Latency of the Inference
 
 - `kubectl top pod` before load
 
-    ![kubectl all config](./assets/images/snap_a15_pod_before_load.png)
+    ![snap_a15_pod_before_load](./assets/images/snap_a15_pod_before_load.png)
 
 - `kubectl top pod` after load
 
-    ![kubectl all config](./assets/images/snap_a15_top_pod_during_hload_3.png)
+    ![snap_a15_top_pod_during_hload_3](./assets/images/snap_a15_top_pod_during_hload_3.png)
 
 - `kubectl describe <your main ingress>`
 
-    ![kubectl all config](./assets/images/snap_a15_describe_ingress.png)
+    ![snap_a15_describe_ingress](./assets/images/snap_a15_describe_ingress.png)
 
 - Inference latency before heavy load
-    ![kubectl all config](./assets/images/snap_a15_inference_before_hload.png)
+    ![snap_a15_inference_before_hload](./assets/images/snap_a15_inference_before_hload.png)
 
 - Inference latency while load
-    ![kubectl all config](./assets/images/snap_a15_latency_during_heavy_load.png)
+    ![snap_a15_latency_during_heavy_load](./assets/images/snap_a15_latency_during_heavy_load.png)
 
 ### Group Members
 

@@ -52,7 +52,9 @@ Using Helm charts, we are deploying a `cat-dog model service` hosted on a FastAP
 
 Note: You can refer [class-work](./eks-dev-class-work) and develop the deployments stage by stage similar in session-15 class
 
-Refer: [class-work-readme](./eks-dev-class-work/README.md) for proper usage of classwork files 
+Refer: [class-work-readme](./eks-dev-class-work/README.md) for proper usage of classwork files
+
+Note: it took 5$ for doing class work debugging and development and 6$ for assignment debugging and development.
 
 Local installations (no need a new ec2 instance for doing below work)
 
@@ -376,6 +378,7 @@ Delete cluster
     ![Pod Heavy load](./assets/images/snap_a15_scale_in.png)
 
     Pod: scale in
+
     Note: Didnt capture the screenshot so kindly check cluster logs and hpa logs
 
     [hpa_logs_last_line](./assets/logs/hpa_rescale_logs.txt)
